@@ -42,6 +42,34 @@ if [ $bundle = 'gfs' ]; then
   [ $rc != 0 ] && exit $rc
 
 #----------------------------------------------------------------------
+# Read the nemsio analysis files from the gefs bundle.
+#----------------------------------------------------------------------
+elif [ $bundle = 'gefs' ]; then
+  RUNMEM=${RUNMEM:-"c00"}
+
+  mkdir -p $EXTRACT_DIR/${bundle}.${yy}${mm}${dd}/${hh}/${RUNMEM}
+  cd $EXTRACT_DIR/${bundle}.${yy}${mm}${dd}/${hh}/${RUNMEM}
+
+  directory=/NCEPPROD/hpssprod/runhistory/rh${yy}/${yy}${mm}/${yy}${mm}${dd}
+  if [ $yy$mm$dd$hh -lt 2020022600 ]; then
+    file=gpfs_dell1_nco_ops_com_gfs_prod_gfs.${yy}${mm}${dd}_${hh}.gfs_nemsioa.tar
+  else
+    file=com_gfs_prod_gfs.${yy}${mm}${dd}_${hh}.gfs_nemsioa.tar
+  fi
+
+  htar -xvf $directory/$file ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.atmanl.nemsio
+  rc=$?
+  [ $rc != 0 ] && exit $rc
+  mv ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.atmanl.nemsio .
+  rm -rf ./gfs.${yy}${mm}${dd}
+
+  htar -xvf $directory/$file ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.sfcanl.nemsio
+  rc=$?
+  [ $rc != 0 ] && exit $rc
+  mv ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.sfcanl.nemsio .
+  rm -rf ./gfs.${yy}${mm}${dd}
+
+#----------------------------------------------------------------------
 # For GDAS, use the tiled restart files.  Need to use the 6-hour 
 # forecast files from the previous cycle as they are not saved
 # at the current cycle.

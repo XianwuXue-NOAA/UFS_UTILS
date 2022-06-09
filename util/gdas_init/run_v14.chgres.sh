@@ -22,6 +22,15 @@ if [ "${MEMBER}" = "gdas" ] || [ "${MEMBER}" = "gfs" ]; then
   ATMFILE="${MEMBER}.t${hh}z.atmanl.nemsio"
   SFCFILE="${MEMBER}.t${hh}z.sfcanl.nemsio"
   NSTFILE="${MEMBER}.t${hh}z.nstanl.nemsio"
+elif [ "${MEMBER}" = "gefs" ]; then
+  RUNMEM=${RUNMEM:-c00}
+  CTAR=${CRES_HIRES}
+  INPUT_DATA_DIR="${EXTRACT_DIR}/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}"
+  RADSTAT_DATA_DIR="${EXTRACT_DIR}/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}"
+  OUTDIR=$OUTDIR/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}/atmos
+  ATMFILE="gfs.t${hh}z.atmanl.nemsio"
+  SFCFILE="gfs.t${hh}z.sfcanl.nemsio"
+  NSTFILE="gfs.t${hh}z.nstanl.nemsio"
 else  
   CTAR=${CRES_ENKF}
   INPUT_DATA_DIR="${EXTRACT_DIR}/enkf.${yy}${mm}${dd}/${hh}/mem${MEMBER}"

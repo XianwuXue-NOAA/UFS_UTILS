@@ -43,6 +43,22 @@ if [ ${MEMBER} == 'gdas' ] || [ ${MEMBER} == 'gfs' ] ; then
   fi
   ATMFILE="${MEMBER}.t${hh}z.atmanl.nc"
   SFCFILE="${MEMBER}.t${hh}z.sfcanl.nc"
+
+elif [ ${MEMBER} == 'gefs' ] ; then
+
+  RUNMEM=${RUNMEM:-"c00"}
+  CTAR=${CRES_HIRES}
+#---------------------------------------------------------------------------
+# Some gfs tarballs from the v16 retro parallels dont have 'atmos'
+# in their path.  Account for this.
+#---------------------------------------------------------------------------
+  INPUT_DATA_DIR="${EXTRACT_DIR}/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}/atmos"
+  if [ ! -d ${INPUT_DATA_DIR} ]; then
+    INPUT_DATA_DIR="${EXTRACT_DIR}/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}"
+  fi
+  ATMFILE="gfs.t${hh}z.atmanl.nc"
+  SFCFILE="gfs.t${hh}z.sfcanl.nc"
+
 else  
   date10=`$NDATE -6 $yy$mm$dd$hh`
   yy_d=$(echo $date10 | cut -c1-4)
@@ -97,6 +113,11 @@ if [ ${MEMBER} == 'gdas' ] || [ ${MEMBER} == 'gfs' ]; then
     cp ${INPUT_DATA_DIR}/*abias* $SAVEDIR/..
     cp ${INPUT_DATA_DIR}/*radstat $SAVEDIR/..
   fi
+elif [ ${MEMBER} == 'gefs' ]; then
+  SAVEDIR=$OUTDIR/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}/atmos/INPUT
+  copy_data
+  touch $SAVEDIR/../${MEMBER}.t${hh}z.loginc.txt
+
 else  
   SAVEDIR=$OUTDIR/enkfgdas.${yy}${mm}${dd}/${hh}/atmos/mem${MEMBER}/INPUT
   copy_data

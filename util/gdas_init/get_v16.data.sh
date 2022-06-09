@@ -77,6 +77,35 @@ if [ "$bundle" = "gdas" ] || [ "$bundle" = "gfs" ]; then
 
   fi
 
+
+elif [ "$bundle" = "gefs" ]; then
+
+  RUNMEM=${RUNMEM:-"c00"}
+
+  mkdir -p $EXTRACT_DIR/${bundle}.${yy}${mm}${dd}/${hh}/${RUNMEM}/atmos
+  cd $EXTRACT_DIR/${bundle}.${yy}${mm}${dd}/${hh}/${RUNMEM}/atmos
+
+  directory=/NCEPPROD/hpssprod/runhistory/rh${yy}/${yy}${mm}/${yy}${mm}${dd}
+  file=com_gfs_prod_gfs.${yy}${mm}${dd}_${hh}.gfs_nca.tar
+
+  rm -f ./list.hires*
+  touch ./list.hires3
+  htar -tvf  $directory/$file > ./list.hires1
+  grep "anl.nc" ./list.hires1 > ./list.hires2
+  while read -r line
+  do
+    echo ${line##*' '} >> ./list.hires3
+  done < "./list.hires2"
+
+  htar -xvf $directory/$file -L ./list.hires3
+  rc=$?
+  [ $rc != 0 ] && exit $rc
+
+  rm -f ./list.hires*
+
+  cp ./gfs.${yy}${mm}${dd}/${hh}/atmos/gfs.t${hh}z.*anl.nc .
+  rm -rf ./gfs.${yy}${mm}${dd}
+
 #----------------------------------------------------------------------
 # Get the enkf netcdf history files.  They are not saved for the
 # current cycle.  So get the 6-hr forecast files from the

@@ -82,6 +82,36 @@ elif [ $bundle = 'enkf' ]; then
 
   rm -f gdas.*
 
+elif [ $bundle = 'gefs' ]; then
+
+  #----------------------------------------------------------------------
+  # Get the gefs ICs
+  #----------------------------------------------------------------------
+  RUNMEM=${RUNMEM:-"c00"}
+
+  mkdir -p $EXTRACT_DIR/${bundle}.${yy}${mm}${dd}/${hh}/${RUNMEM}
+  cd $EXTRACT_DIR/${bundle}.${yy}${mm}${dd}/${hh}/${RUNMEM}
+
+  directory=/NCEPPROD/hpssprod/runhistory/rh${yy}/${yy}${mm}/${yy}${mm}${dd}
+
+  file=gpfs_hps_nco_ops_com_gfs_prod_gfs.${yy}${mm}${dd}${hh}.anl.tar
+
+  htar -xvf $directory/$file ./gfs.t${hh}z.atmanl.nemsio
+  rc=$?
+  [ $rc != 0 ] && exit $rc
+  htar -xvf $directory/$file ./gfs.t${hh}z.nstanl.nemsio
+  rc=$?
+  [ $rc != 0 ] && exit $rc
+  htar -xvf $directory/$file ./gfs.t${hh}z.sfcanl.nemsio
+  rc=$?
+  [ $rc != 0 ] && exit $rc
+
+  set +x
+  echo DATA PULL FOR $bundle DONE
+
+  exit 0
+
+
 fi
 
 set +x
