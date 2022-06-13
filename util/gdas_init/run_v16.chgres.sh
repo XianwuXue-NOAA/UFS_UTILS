@@ -56,7 +56,17 @@ elif [ ${MEMBER} == 'gefs' ] ; then
   if [ ! -d ${INPUT_DATA_DIR} ]; then
     INPUT_DATA_DIR="${EXTRACT_DIR}/${MEMBER}.${yy}${mm}${dd}/${hh}/${RUNMEM}"
   fi
-  ATMFILE="gfs.t${hh}z.atmanl.nc"
+  if [[ ${RUNMEM} == "c00" ]]; then
+    ATMFILE="gfs.t${hh}z.atmanl.nc"
+  else
+    date10=`$NDATE -6 $yy$mm$dd$hh`
+    yy_d=$(echo $date10 | cut -c1-4)
+    mm_d=$(echo $date10 | cut -c5-6)
+    dd_d=$(echo $date10 | cut -c7-8)
+    hh_d=$(echo $date10 | cut -c9-10)
+
+    ATMFILE="gdas.t${hh_d}z.atmf006.nc"
+  fi
   SFCFILE="gfs.t${hh}z.sfcanl.nc"
 
 else  
@@ -75,6 +85,14 @@ rm -fr $WORKDIR
 mkdir -p $WORKDIR
 cd $WORKDIR
 
+if [[ ${RUNMEM} == c00 ]]; then
+  convert_atm=.true.
+  convert_sfc=.true.
+else
+  convert_atm=.true.
+  convert_sfc=.false.
+fi
+
 cat << EOF > fort.41
 
 &config
@@ -89,8 +107,8 @@ cat << EOF > fort.41
  cycle_mon=$mm
  cycle_day=$dd
  cycle_hour=$hh
- convert_atm=.true.
- convert_sfc=.true.
+ convert_atm=$convert_atm
+ convert_sfc=$convert_sfc
  convert_nst=.true.
  input_type="gaussian_netcdf"
  tracers="sphum","liq_wat","o3mr","ice_wat","rainwat","snowwat","graupel"
@@ -103,6 +121,45 @@ rc=$?
 
 if [ $rc != 0 ]; then
   exit $rc
+fi
+
+#----
+if [[ ${RUNMEM} != c00 ]]; then
+
+  convert_atm=.false.
+  convert_sfc=.true.
+
+  cat << EOF > fort.41
+
+&config
+ fix_dir_target_grid="${FIX_ORO}/${CTAR}/fix_sfc"
+ mosaic_file_target_grid="${FIX_ORO}/${CTAR}/${CTAR}_mosaic.nc"
+ orog_dir_target_grid="${FIX_ORO}/${CTAR}"
+ orog_files_target_grid="${CTAR}_oro_data.tile1.nc","${CTAR}_oro_data.tile2.nc","${CTAR}_oro_data.tile3.nc","${CTAR}_oro_data.tile4.nc","${CTAR}_oro_data.tile5.nc","${CTAR}_oro_data.tile6.nc"
+ data_dir_input_grid="${INPUT_DATA_DIR}"
+ atm_files_input_grid="${ATMFILE}"
+ sfc_files_input_grid="${SFCFILE}"
+ vcoord_file_target_grid="${FIX_AM}/global_hyblev.l${LEVS}.txt"
+ cycle_mon=$mm
+ cycle_day=$dd
+ cycle_hour=$hh
+ convert_atm=$convert_atm
+ convert_sfc=$convert_sfc
+ convert_nst=.true.
+ input_type="gaussian_netcdf"
+ tracers="sphum","liq_wat","o3mr","ice_wat","rainwat","snowwat","graupel"
+ tracers_input="spfh","clwmr","o3mr","icmr","rwmr","snmr","grle"
+/
+EOF
+
+  $APRUN $UFS_DIR/exec/chgres_cube
+  rc=$?
+
+  if [ $rc != 0 ]; then
+    exit $rc
+  fi
+
+
 fi
 
 if [ ${MEMBER} == 'gdas' ] || [ ${MEMBER} == 'gfs' ]; then

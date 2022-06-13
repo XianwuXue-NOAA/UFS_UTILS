@@ -91,7 +91,11 @@ elif [ "$bundle" = "gefs" ]; then
   rm -f ./list.hires*
   touch ./list.hires3
   htar -tvf  $directory/$file > ./list.hires1
-  grep "anl.nc" ./list.hires1 > ./list.hires2
+  if [[ $RUNMEM == "c00" ]]; then
+    grep "anl.nc" ./list.hires1 > ./list.hires2
+  else
+    grep "sfcanl.nc" ./list.hires1 > ./list.hires2
+  fi
   while read -r line
   do
     echo ${line##*' '} >> ./list.hires3
@@ -106,6 +110,54 @@ elif [ "$bundle" = "gefs" ]; then
   cp ./gfs.${yy}${mm}${dd}/${hh}/atmos/gfs.t${hh}z.*anl.nc .
   rm -rf ./gfs.${yy}${mm}${dd}
 
+  if [[ $RUNMEM != "c00" ]]; then # Other members
+
+    export MEMBER=`echo ${RUNMEM:-"c00"}|cut -c2-3`
+    if [ $MEMBER -gt 90 ]; then
+      sgrp=10
+    elif [ $MEMBER -gt 80 ]; then
+      sgrp=9
+    elif [ $MEMBER -gt 70 ]; then
+      sgrp=8
+    elif [ $MEMBER -gt 60 ]; then
+      sgrp=7
+    elif [ $MEMBER -gt 50 ]; then
+      sgrp=6
+    elif [ $MEMBER -gt 40 ]; then
+      sgrp=5
+    elif [ $MEMBER -gt 30 ]; then
+      sgrp=4
+    elif [ $MEMBER -gt 20 ]; then
+      sgrp=3
+    elif [ $MEMBER -gt 10 ]; then
+      sgrp=2
+    elif [ $MEMBER -gt 0 ]; then
+      sgrp=1
+    else
+      sgrp=5
+    fi
+
+    group=grp${sgrp}
+    directory=/NCEPPROD/hpssprod/runhistory/5year/rh${yy_m6}/${yy_m6}${mm_m6}/${yy_m6}${mm_m6}${dd_m6}
+    file=com_gfs_prod_enkfgdas.${yy_m6}${mm_m6}${dd_m6}_${hh_m6}.enkfgdas_${group}.tar
+
+    rm -f ./list*.${group}
+    htar -tvf  $directory/$file > ./list1.${group}
+    grep "atmf006.nc" ./list1.${group} > ./list2.${group}
+    grep "mem001" ./list2.${group} > ./list22.${group}
+    while read -r line
+    do
+      echo ${line##*' '} >> ./list3.${group}
+    done < "./list22.${group}"
+    htar -xvf $directory/$file  -L ./list3.${group}
+    rc=$?
+    [ $rc != 0 ] && exit $rc
+
+    sFile=`cat ./list3.${group}`
+    cp $sFile .
+    rm -rf ./enkfgdas.${yy_m6}${mm_m6}${dd_m6}
+    rm -f ./list*.${group}
+  fi
 #----------------------------------------------------------------------
 # Get the enkf netcdf history files.  They are not saved for the
 # current cycle.  So get the 6-hr forecast files from the
