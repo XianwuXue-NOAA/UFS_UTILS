@@ -15,6 +15,7 @@ https://ufs-community.github.io/UFS_UTILS/.
 Utility | Programmer(s)
 --------|----------
 chgres_cube | George Gayno, Jeff Beck, Larissa Reames
+cpld_gridgen | Denise Worthen, Minsuk Ji
 emcsfc_ice_blend | George Gayno
 emcsfc_snow2mdl | George Gayno
 fre-nctools | GFDL progammer
@@ -40,7 +41,6 @@ This package uses the [hpc-stack](https://github.com/NOAA-EMC/hpc-stack) for the
  - [NCEPLIBS-sp](https://github.com/NOAA-EMC/NCEPLIBS-sp)
  - [NCEPLIBS-ip](https://github.com/NOAA-EMC/NCEPLIBS-ip)
  - [NCEPLIBS-g2](https://github.com/NOAA-EMC/NCEPLIBS-g2)
- - [NCEPLIBS-wgrib2](https://github.com/NOAA-EMC/NCEPLIBS-wgrib2)
 
 And for the following third party libraries:
 
@@ -51,6 +51,10 @@ And for the following third party libraries:
  - [Zlib](www.zlib.net)
  - [HDF5](https://www.hdfgroup.org/solutions/hdf5/)
  - [PNG](http://www.libpng.org/pub/png/)
+
+It also uses the following repositories:
+
+ - [NCAR common community physics package](https://github.com/NCAR/ccpp-physics)
 
 ## Installing
 
@@ -67,6 +71,7 @@ make install
 The UFS_UTILS package contains the following utilities (under the sorc
 directory):
 - chgres_cube
+- cpld_gridgen
 - emcsfc_ice_blend
 - emcsfc_snow2mdl
 - fre-nctools
