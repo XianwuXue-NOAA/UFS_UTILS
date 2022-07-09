@@ -57,17 +57,63 @@ elif [ $bundle = 'gefs' ]; then
     file=com_gfs_prod_gfs.${yy}${mm}${dd}_${hh}.gfs_nemsioa.tar
   fi
 
-  htar -xvf $directory/$file ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.atmanl.nemsio
-  rc=$?
-  [ $rc != 0 ] && exit $rc
-  mv ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.atmanl.nemsio .
-  rm -rf ./gfs.${yy}${mm}${dd}
-
   htar -xvf $directory/$file ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.sfcanl.nemsio
   rc=$?
   [ $rc != 0 ] && exit $rc
   mv ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.sfcanl.nemsio .
   rm -rf ./gfs.${yy}${mm}${dd}
+
+
+  if [[ $RUNMEM == "c00" ]]; then
+    htar -xvf $directory/$file ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.atmanl.nemsio
+    rc=$?
+    [ $rc != 0 ] && exit $rc
+    mv ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.atmanl.nemsio .
+    rm -rf ./gfs.${yy}${mm}${dd}
+
+  else
+    export MEMBER=`echo ${RUNMEM:-"c00"}|cut -c2-3`
+    if [ $MEMBER -gt 90 ]; then
+      sgrp=10
+    elif [ $MEMBER -gt 80 ]; then
+      sgrp=9
+    elif [ $MEMBER -gt 70 ]; then
+      sgrp=8
+    elif [ $MEMBER -gt 60 ]; then
+      sgrp=7
+    elif [ $MEMBER -gt 50 ]; then
+      sgrp=6
+    elif [ $MEMBER -gt 40 ]; then
+      sgrp=5
+    elif [ $MEMBER -gt 30 ]; then
+      sgrp=4
+    elif [ $MEMBER -gt 20 ]; then
+      sgrp=3
+    elif [ $MEMBER -gt 10 ]; then
+      sgrp=2
+    elif [ $MEMBER -gt 0 ]; then
+      sgrp=1
+    else
+      sgrp=5
+    fi
+
+    group=grp${sgrp}
+    mem=$(printf %03i $MEMBER)
+
+    directory=/NCEPPROD/hpssprod/runhistory/5year/rh${yy_m6}/${yy_m6}${mm_m6}/${yy_m6}${mm_m6}${dd_m6}
+    file=com_gfs_prod_enkfgdas.${yy_m6}${mm_m6}${dd_m6}_${hh_m6}.enkfgdas_${group}.tar
+
+    htar -xvf $directory/$file ./enkfgdas.${yy_m6}${mm_m6}${dd_m6}/${hh_m6}/mem${mem}/gdas.t${hh_m6}z.atmf006.nemsio
+    mv ./enkfgdas.${yy_m6}${mm_m6}${dd_m6}/${hh_m6}/mem${mem}/gdas.t${hh_m6}z.atmf006.nemsio .
+    rm -rf ./enkf.gdas.${yy_m6}${mm_m6}${dd_m6}
+  fi
+
+  
+#  htar -xvf $directory/$file ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.sfcanl.nemsio
+#  rc=$?
+#  [ $rc != 0 ] && exit $rc
+#  mv ./gfs.${yy}${mm}${dd}/${hh}/gfs.t${hh}z.sfcanl.nemsio .
+#  rm -rf ./gfs.${yy}${mm}${dd}
 
 #----------------------------------------------------------------------
 # For GDAS, use the tiled restart files.  Need to use the 6-hour 

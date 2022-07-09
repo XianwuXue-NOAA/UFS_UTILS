@@ -18,7 +18,19 @@ WORKDIR=${WORKDIR:-$OUTDIR/work.gfs}
 CTAR=${CRES_HIRES}
 INPUT_DATA_DIR="${EXTRACT_DIR}/gefs.${yy}${mm}${dd}/${hh}/${RUNMEM}"
 OUTDIR=$OUTDIR/gefs.${yy}${mm}${dd}/${hh}/${RUNMEM}/atmos
-ATMFILE="gfs.t${hh}z.atmanl.nemsio"
+if [[ ${RUNMEM} == c00 ]]; then
+  ATMFILE="gfs.t${hh}z.atmanl.nemsio"
+else
+  date10_m6=`$NDATE -6 $yy$mm$dd$hh`
+
+  echo $date10_m6
+  yy_m6=$(echo $date10_m6 | cut -c1-4)
+  mm_m6=$(echo $date10_m6 | cut -c5-6)
+  dd_m6=$(echo $date10_m6 | cut -c7-8)
+  hh_m6=$(echo $date10_m6 | cut -c9-10)
+
+  ATMFILE="gdas.t${hh_m6}z.atmf006.nemsio"
+fi
 SFCFILE="gfs.t${hh}z.sfcanl.nemsio"
 
 rm -fr $WORKDIR
@@ -28,6 +40,14 @@ cd $WORKDIR
 rm -fr $OUTDIR
 mkdir -p $OUTDIR
 mkdir -p $OUTDIR/INPUT
+
+if [[ ${RUNMEM} == c00 ]]; then
+  convert_atm=.true.
+  convert_sfc=.true.
+else
+  convert_atm=.true.
+  convert_sfc=.false.
+fi
 
 cat << EOF > fort.41
 
@@ -57,6 +77,45 @@ rc=$?
 
 if [ $rc != 0 ]; then
   exit $rc
+fi
+
+#----
+if [[ ${RUNMEM} != c00 ]]; then
+
+  convert_atm=.false.
+  convert_sfc=.true.
+
+  cat << EOF > fort.41
+
+&config
+ fix_dir_target_grid="${FIX_ORO}/${CTAR}/fix_sfc"
+ mosaic_file_target_grid="${FIX_ORO}/${CTAR}/${CTAR}_mosaic.nc"
+ orog_dir_target_grid="${FIX_ORO}/${CTAR}"
+ orog_files_target_grid="${CTAR}_oro_data.tile1.nc","${CTAR}_oro_data.tile2.nc","${CTAR}_oro_data.tile3.nc","${CTAR}_oro_data.tile4.nc","${CTAR}_oro_data.tile5.nc","${CTAR}_oro_data.tile6.nc"
+ data_dir_input_grid="${INPUT_DATA_DIR}"
+ atm_files_input_grid="$ATMFILE"
+ sfc_files_input_grid="$SFCFILE"
+ vcoord_file_target_grid="${FIX_AM}/global_hyblev.l${LEVS}.txt"
+ cycle_mon=$mm
+ cycle_day=$dd
+ cycle_hour=$hh
+ convert_atm=.true.
+ convert_sfc=.true.
+ convert_nst=.true.
+ input_type="gaussian_nemsio"
+ tracers="sphum","liq_wat","o3mr","ice_wat","rainwat","snowwat","graupel"
+ tracers_input="spfh","clwmr","o3mr","icmr","rwmr","snmr","grle"
+/
+EOF
+
+  $APRUN $UFS_DIR/exec/chgres_cube
+  rc=$?
+
+  if [ $rc != 0 ]; then
+    exit $rc
+  fi
+
+
 fi
 
 mv gfs_ctrl.nc ${OUTDIR}/INPUT
