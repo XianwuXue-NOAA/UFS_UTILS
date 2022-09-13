@@ -22,6 +22,8 @@ cd ./build
 
 if [[ $target == "wcoss_cray" ]]; then
   cmake .. -DCMAKE_INSTALL_PREFIX=../ -DEMC_EXEC_DIR=ON
+elif [[ $target == "hera" ]]; then
+  cmake .. -DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc -DCMAKE_INSTALL_PREFIX=../ -DEMC_EXEC_DIR=ON
 else
   cmake .. -DCMAKE_Fortran_COMPILER=ftn -DCMAKE_C_COMPILER=cc -DCMAKE_INSTALL_PREFIX=../ -DEMC_EXEC_DIR=ON
 fi
